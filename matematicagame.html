@@ -1,0 +1,495 @@
+<html><head>
+<meta charset="UTF-8">
+<title>Math Challenge Game</title>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background: linear-gradient(135deg, #6dd5ed, #2193b0);
+    }
+
+    .container {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        text-align: center;
+        min-width: 320px;
+    }
+
+    .problem {
+        font-size: 2.5rem;
+        margin: 1rem 0;
+        color: #333;
+    }
+
+    input {
+        font-size: 1.2rem;
+        padding: 0.5rem;
+        width: 80%;
+        border: 2px solid #2193b0;
+        border-radius: 5px;
+        margin: 0.5rem 0;
+        text-align: center;
+    }
+
+    #answer {
+        width: 100px;
+    }
+
+    button {
+        background: #2193b0;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        margin: 0.5rem;
+    }
+
+    button:hover {
+        transform: scale(1.05);
+    }
+
+    .score {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        color: #666;
+    }
+
+    .feedback {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        height: 1.5rem;
+    }
+
+    .correct {
+        color: #4CAF50;
+        animation: popIn 0.5s ease;
+    }
+
+    .incorrect {
+        color: #f44336;
+        animation: shake 0.5s ease;
+    }
+
+    .login-container, .game-container {
+        display: none;
+    }
+
+    .active {
+        display: block;
+    }
+
+    .switch-form {
+        color: #2193b0;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    .referral-section {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-top: 1px solid #ccc;
+    }
+
+    #referralLink {
+        word-break: break-all;
+        padding: 0.5rem;
+        background: #f5f5f5;
+        border-radius: 5px;
+        margin: 0.5rem 0;
+    }
+
+    .referral-message {
+        color: #2193b0;
+        font-weight: bold;
+        margin: 1rem 0;
+        padding: 0.5rem;
+        background: #f0f9ff;
+        border-radius: 5px;
+        border: 1px solid #2193b0;
+    }
+
+    .withdrawal-status {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f0f9ff;
+        border: 1px solid #2193b0;
+        border-radius: 5px;
+        display: none;
+    }
+
+    .withdrawal-info {
+        color: #2193b0;
+        font-weight: bold;
+    }
+
+    .processing-date {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div id="login-section" class="login-container active">
+            <h1>Bem-vindo!</h1>
+            <div id="login-form">
+                <h2>Entrar</h2>
+                <input type="email" id="login-email" placeholder="Email" required><br>
+                <input type="password" id="login-password" placeholder="Senha" required><br>
+                <button onclick="login()">Entrar</button>
+                <p><span class="switch-form" onclick="showPasswordRecovery()">Esqueceu sua senha?</span></p>
+                <p>Não tem uma conta? <span class="switch-form" onclick="toggleForms()">Registrar</span></p>
+            </div>
+            <div id="register-form" style="display: none;">
+                <h2>Registrar</h2>
+                <input type="text" id="register-name" placeholder="Nome" required><br>
+                <input type="email" id="register-email" placeholder="Email" required><br>
+                <input type="password" id="register-password" placeholder="Senha" required><br>
+                <input type="text" id="referral-code" placeholder="Código de Indicação (opcional)"><br>
+                <button onclick="register()">Registrar</button>
+                <p>Já tem uma conta? <span class="switch-form" onclick="toggleForms()">Entrar</span></p>
+            </div>
+            <div id="password-recovery-form" style="display: none;">
+                <h2>Recuperar Senha</h2>
+                <input type="email" id="recovery-email" placeholder="Email" required><br>
+                <button onclick="recoverPassword()">Enviar</button>
+                <p><span class="switch-form" onclick="backToLogin()">Voltar ao Login</span></p>
+            </div>
+        </div>
+
+        <div id="game-section" class="game-container">
+            <h1>Desafio de Matemática</h1>
+            <div class="problem" id="problem"></div>
+            <input type="number" id="answer" placeholder="Resposta">
+            <br>
+            <button onclick="checkAnswer()">Verificar</button>
+            <button onclick="logout()">Sair</button>
+            <div class="feedback" id="feedback"></div>
+            <div class="score" id="score">Ganhos: $0.00</div>
+            <div class="referral-section" id="referral-section" style="display: none;">
+                <h3>Seu Link de Indicação</h3>
+                <div id="referralLink"></div>
+                <p class="referral-message">A cada pessoa que se registrar usando seu link de indicação, você e ela receberão um bônus de $5.00!</p>
+                <p>Indicações: <span id="referralCount">0</span>/50</p>
+            </div>
+            <div class="withdrawal-status" id="withdrawal-section">
+                <h3>Status do Saque</h3>
+                <p class="withdrawal-info">Seu saque de $1000.00 está em processamento</p>
+                <p class="processing-date">Data prevista para pagamento: <span id="payment-date"></span></p>
+            </div>
+        </div>
+    </div>
+
+<script>
+let currentProblem = {};
+let score = 0;
+let currentUser = null;
+
+// Load saved user data when page loads
+window.onload = function() {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        score = currentUser.score;
+        loginSuccess();
+    }
+};
+
+function generateReferralCode() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+function saveUserData() {
+    if (currentUser) {
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const index = users.findIndex(u => u.email === currentUser.email);
+        if (index >= 0) {
+            users[index] = currentUser;
+        }
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+}
+
+function toggleForms() {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    
+    if (loginForm.style.display === 'none') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+    } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+    }
+}
+
+function register() {
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const referralCode = document.getElementById('referral-code').value;
+
+    if (!name || !email || !password) {
+        alert('Por favor, preencha todos os campos!');
+        return;
+    }
+
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    if (users.some(user => user.email === email)) {
+        alert('Este email já está registrado!');
+        return;
+    }
+
+    const newUser = {
+        name,
+        email,
+        password,
+        score: 0,
+        referralCode: generateReferralCode(),
+        referrals: [],
+    };
+
+    if (referralCode) {
+        const referrer = users.find(u => u.referralCode === referralCode);
+        if (referrer && referrer.referrals.length < 50) {
+            referrer.referrals.push(email);
+            referrer.score += 5.00;  
+            newUser.score += 5.00;   
+            users.forEach((u, i) => {
+                if (u.email === referrer.email) {
+                    users[i] = referrer;
+                }
+            });
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Registro realizado com sucesso! Você e seu indicador receberam um bônus de $5.00!');
+        } else {
+            alert('Código de indicação inválido ou limite de indicações atingido.');
+            return;
+        }
+    } else {
+        alert('Registro realizado com sucesso!');
+    }
+
+    users.push(newUser);
+    localStorage.setItem('users', JSON.stringify(users));
+    toggleForms();
+}
+
+function loginSuccess() {
+    document.getElementById('login-section').classList.remove('active');
+    document.getElementById('game-section').classList.add('active');
+    document.getElementById('score').textContent = `Ganhos: $${score.toFixed(2)}`;
+    updateReferralSection();
+    checkWithdrawalStatus();
+    generateProblem();
+}
+
+function login() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (user) {
+        currentUser = user;
+        score = user.score;
+        saveUserData();
+        loginSuccess();
+    } else {
+        alert('Email ou senha incorretos!');
+    }
+}
+
+function logout() {
+    if (currentUser) {
+        currentUser.score = score;
+        saveUserData();
+    }
+    currentUser = null;
+    score = 0;
+    localStorage.removeItem('currentUser');
+    document.getElementById('login-section').classList.add('active');
+    document.getElementById('game-section').classList.remove('active');
+}
+
+function updateReferralSection() {
+    const referralSection = document.getElementById('referral-section');
+    const referralLink = document.getElementById('referralLink');
+    const referralCount = document.getElementById('referralCount');
+
+    if (currentUser && score >= 100.00) {  
+        referralSection.style.display = 'block';
+        referralLink.textContent = `${window.location.origin}?ref=${currentUser.referralCode}`;
+        referralCount.textContent = currentUser.referrals.length;
+    } else {
+        referralSection.style.display = 'none';
+    }
+}
+
+function generateProblem() {
+    const operations = ['+', '-', '*'];
+    const operation = operations[Math.floor(Math.random() * operations.length)];
+    let num1 = Math.floor(Math.random() * 12) + 1;
+    let num2 = Math.floor(Math.random() * 12) + 1;
+    
+    if (operation === '-' && num1 < num2) {
+        [num1, num2] = [num2, num1];
+    }
+
+    let answer;
+    switch(operation) {
+        case '+': answer = num1 + num2; break;
+        case '-': answer = num1 - num2; break;
+        case '*': answer = num1 * num2; break;
+    }
+
+    currentProblem = { num1, num2, operation, answer };
+    document.getElementById('problem').textContent = `${num1} ${operation} ${num2} = ?`;
+    document.getElementById('answer').value = '';
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('answer').focus();
+}
+
+function checkWithdrawalStatus() {
+    const withdrawalSection = document.getElementById('withdrawal-section');
+    if (currentUser && currentUser.withdrawalStatus) {
+        withdrawalSection.style.display = 'block';
+        document.getElementById('payment-date').textContent = currentUser.paymentDate;
+    } else {
+        withdrawalSection.style.display = 'none';
+    }
+}
+
+function initiateWithdrawal() {
+    if (score >= 1000.00 && currentUser && !currentUser.withdrawalStatus) {
+        const processDate = new Date();
+        const paymentDate = new Date(processDate);
+        paymentDate.setDate(paymentDate.getDate() + 30);
+
+        currentUser.withdrawalStatus = true;
+        currentUser.withdrawalAmount = 1000.00;
+        currentUser.paymentDate = paymentDate.toLocaleDateString('pt-BR');
+        score -= 1000.00;
+        currentUser.score = score;
+        
+        saveUserData();
+        checkWithdrawalStatus();
+        document.getElementById('score').textContent = `Ganhos: $${score.toFixed(2)}`;
+        alert('Seu saque de $1000.00 foi iniciado! O processamento levará 30 dias.');
+    }
+}
+
+function checkAnswer() {
+    const userAnswer = parseInt(document.getElementById('answer').value);
+    const feedback = document.getElementById('feedback');
+    
+    if (isNaN(userAnswer)) {
+        feedback.textContent = 'Por favor, digite um número!';
+        feedback.className = 'feedback incorrect';
+        return;
+    }
+
+    if (userAnswer === currentProblem.answer) {
+        score += 0.75;
+        feedback.textContent = 'Correto!';
+        feedback.className = 'feedback correct';
+        setTimeout(() => {
+            location.reload(); 
+        }, 5000);
+    } else {
+        score = Math.max(0, score - 0.375);
+        feedback.textContent = `Incorreto! A resposta era ${currentProblem.answer}`;
+        feedback.className = 'feedback incorrect';
+        setTimeout(generateProblem, 2000);
+    }
+    
+    if (currentUser) {
+        currentUser.score = score;
+        saveUserData();
+    }
+    document.getElementById('score').textContent = `Ganhos: $${score.toFixed(2)}`;
+    updateReferralSection();
+    
+    if (score >= 1000.00 && currentUser && !currentUser.withdrawalStatus) {
+        initiateWithdrawal();
+    }
+}
+
+function showPasswordRecovery() {
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('register-form').style.display = 'none';
+    document.getElementById('password-recovery-form').style.display = 'block';
+}
+
+function backToLogin() {
+    document.getElementById('password-recovery-form').style.display = 'none';
+    document.getElementById('login-form').style.display = 'block';
+}
+
+function recoverPassword() {
+    const email = document.getElementById('recovery-email').value;
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.email === email);
+    
+    if (user) {
+        alert('Se este email estiver cadastrado, você receberá instruções para redefinir sua senha.');
+    } else {
+        alert('Se este email estiver cadastrado, você receberá instruções para redefinir sua senha.');
+    }
+    backToLogin();
+}
+
+// Event Listeners
+document.getElementById('answer').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        checkAnswer();
+    }
+});
+
+document.getElementById('login-password').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        login();
+    }
+});
+
+document.getElementById('register-password').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        register();
+    }
+});
+
+// Handle referral codes from URL
+window.addEventListener('load', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+        document.getElementById('referral-code').value = refCode;
+        toggleForms();
+    }
+});
+</script>
+
+</body></html>
